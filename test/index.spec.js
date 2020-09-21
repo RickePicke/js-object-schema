@@ -36,6 +36,7 @@ describe('schema', () => {
 
         expect(result.object).toEqual(object);
         expect(result.error.errors.length).toBe(1);
+        expect(result.error.message).toBe('Schema validation error');
         expect(result.error.errors[0].message).toBe('maxLevel must be a number greater than 0.');
     });
 
@@ -61,6 +62,7 @@ describe('schema', () => {
 
         expect(result.object).toEqual(object);
         expect(result.error.errors.length).toBe(1);
+        expect(result.error.message).toBe('Schema validation error');
         expect(result.error.errors[0].message).toBe('level must be lower or equal to maxLevel');
     });
 
@@ -77,5 +79,20 @@ describe('schema', () => {
         const result = schema.validate(objectWithExtraProps);
 
         expect(result.object).toEqual(baseObject);
+    });
+
+    test('schema given options with strict true should return specific error when object has keys doesn\'t match schema', () => {
+        const schema = new JsObjectSchema({
+            name: ({ name }) => typeof name === 'string',
+            maxLevel: ({ maxLevel }) => typeof maxLevel === 'number' && maxLevel > 0,
+            level: ({ level, maxLevel }) => typeof level === 'number' && level <= maxLevel
+        }, { strict: true });
+
+        const object = { name: 'Squirtle', level: 1, maxLevel: 99, hp: 60, attacks: [ 'Tackle', 'Leer' ] };
+        const result = schema.validate(object);
+
+        expect(result.error.errors.length).toBe(1);
+        expect(result.error.message).toBe('Strict violation error');
+        expect(result.error.errors[0].message).toBe('Object include properties that is not in schema');
     });
 });

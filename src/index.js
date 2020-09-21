@@ -1,5 +1,6 @@
 const defaultOptions = {
-    parseObject: false
+    parseObject: false,
+    strict: false
 };
 
 export default class {
@@ -37,18 +38,36 @@ export default class {
             }
         };
 
-        const errors = Object
+        const strictError = this.options.strict ? this._checkStrict(Object) : null;
+        if (strictError) {
+            return strictError;
+        }
+
+        const validationErrors = Object
             .keys(this.schema)
             .reduce(executeValidationOnKey, []);
 
         return {
             object: this.options.parseObject ? this._parseObject(object) : object,
-            error: !errors.length ? null : { message: 'Schema validation error', errors }
+            error: !validationErrors.length ? null : { message: 'Schema validation error', errors: validationErrors }
         };
     }
 
     _parseObject(object) {
         return Object.keys(this.schema)
             .reduce((acc, key) => ({ ...acc, [key]: object[key] }), {});
+    }
+
+    _checkStrict(object) {
+        const schemaKeys = Object.keys(this.schema).sort();
+        const objectKeys = Object.keys(object).sort();
+
+        return JSON.stringify(objectKeys) === JSON.stringify(schemaKeys) ? null : {
+            object,
+            error: {
+                message: 'Strict violation error',
+                errors: [ new Error('Object include properties that is not in schema') ]
+            }
+        };
     }
 };
