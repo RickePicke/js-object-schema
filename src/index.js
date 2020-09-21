@@ -1,6 +1,11 @@
+const defaultOptions = {
+    parseObject: false
+};
+
 export default class {
-    constructor(schema) {
+    constructor(schema, options = {}) {
         this.schema = schema || {};
+        this.options = { ...defaultOptions, ...options };
         return this;
     }
 
@@ -36,6 +41,14 @@ export default class {
             .keys(this.schema)
             .reduce(executeValidationOnKey, []);
 
-        return { object, error: !errors.length ? null : { message: 'Schema validation error', errors } };
+        return {
+            object: this.options.parseObject ? this._parseObject(object) : object,
+            error: !errors.length ? null : { message: 'Schema validation error', errors }
+        };
+    }
+
+    _parseObject(object) {
+        return Object.keys(this.schema)
+            .reduce((acc, key) => ({ ...acc, [key]: object[key] }), {});
     }
 };
