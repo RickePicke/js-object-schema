@@ -1,6 +1,6 @@
 {
   "name": "js-object-schema",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A tool for validation javascript objects",
   "main": "dist/js-object-schema.common.min.js",
   "module": "dist/js-object-schema.es.js",
