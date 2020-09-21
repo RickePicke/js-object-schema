@@ -20,6 +20,9 @@ CHANGELOG.md
 .travis.yml
 .editorconfig
 .eslintignore
-.eslintrc
-.babelrc
+.eslintrc.js
 .gitignore
+babel.config.js
+jest.config.js
+rollup.config.js
+.idea
