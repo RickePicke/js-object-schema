@@ -41,7 +41,7 @@ Call this function to validate an object
 
 | Argument           | Description                         | Default value |
 |--------------------|-------------------------------------|---------------|
-| object:&nbsp;`Any` | The object that should be validated | `undefined`   |
+| object:&nbsp;`Object` | The object that should be validated | `undefined`   |
 
 | Return Value        | Description                                          | Example                                              |
 |---------------------|------------------------------------------------------|------------------------------------------------------|
