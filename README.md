@@ -45,10 +45,10 @@ Call this function to validate an object
 
 | Return Value        | Description                                          | Example                                              |
 |---------------------|------------------------------------------------------|------------------------------------------------------|
-| result              | An object containing the validated object and error  | `{ object: Object, error: null }`                    |
-| result.object       | The validated and optionally parsed object.          | `{ key: 'value' }`                                   |
-| result.error        | The error object. When no errors, this is null.      | `{ message: 'Schema validation error', errors: [] }` |
-| result.error.errors | The validation errors for each prop.                 | `[ new Error("'key' is invalid") ]`                  |
+| `result`              | An object containing the validated object and error  | `{ object: Object, error: null }`                    |
+| `result.object`       | The validated and optionally parsed object.          | `{ key: 'value' }`                                   |
+| `result.error`        | The error object. When no errors, this is null.      | `{ message: 'Schema validation error', errors: [] }` |
+| `result.error.errors` | The validation errors for each prop.                 | `[ new Error("'key' is invalid") ]`                  |
 
 **Example:**
 ```javascript
