@@ -30,11 +30,11 @@ if (result.error) {
 ```
 ### Api Reference
 #### _JsObjectSchema(name, schema, options)_
-| Prop                | Description                                                                  | Default value                                        |
-|---------------------|------------------------------------------------------------------------------|------------------------------------------------------|
-| name: `String`      | The name of the schema. Providing name will give more accurate error message | `'Object'`                                           |
-| [Schema](#Schema)   | See Schema reference.                                                        | `{}`                                                 |
-| [Options](#Options) | See Options reference                                                        | `{ parseObject: false, rootObjectValidation: null }` |
+| Prop                              | Description                                                                  | Default value                                       |
+|-----------------------------------|------------------------------------------------------------------------------|-----------------------------------------------------|
+| name:&nbsp;`String`               | The name of the schema. Providing name will give more accurate error message | `'Object'`                                          |
+| schema:&nbsp;[Schema](#Schema)    | See Schema reference.                                                        | `{}`                                                |
+| options:&nbsp;[Options](#Options) | See Options reference                                                        | `{parseObject: false, rootObjectValidation: null }` |
 
 ##### Example
 ```javascript
@@ -93,10 +93,10 @@ const trainerSchema = new JsObjectSchema('Pokemon', {
 });
 ```
 #### Options
-| Prop                             | Description                                                                                           | Default value |
-|----------------------------------|-------------------------------------------------------------------------------------------------------|---------------|
-| parseObject: `Boolean`           | When true, the object will pe parsed to match the schema. Not inherited by nested schemas.            | `false`       |
-| rootObjectValidation: `function` | A function that is invoked with the root object. When returning true, object is interpreted as valid. | `null`        |
+| Prop                                  | Description                                                                                           | Default value |
+|---------------------------------------|-------------------------------------------------------------------------------------------------------|---------------|
+| parseObject:&nbsp;`Boolean`           | When true, the object will pe parsed to match the schema. Not inherited by nested schemas.            | `false`       |
+| rootObjectValidation:&nbsp;`function` | A function that is invoked with the root object. When returning true, object is interpreted as valid. | `null`        |
 
 ## License
 [MIT](./LICENSE)
