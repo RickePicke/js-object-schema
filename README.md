@@ -30,11 +30,25 @@ if (result.error) {
 ```
 ### Api Reference
 #### _JsObjectSchema(name, schema, options)_
-| Prop                              | Description                                                                  | Default value                                       |
+| Argument                          | Description                                                                  | Default value                                       |
 |-----------------------------------|------------------------------------------------------------------------------|-----------------------------------------------------|
 | name:&nbsp;`String`               | The name of the schema. Providing name will give more accurate error message | `'Object'`                                          |
 | schema:&nbsp;[Schema](#Schema)    | See Schema reference.                                                        | `{}`                                                |
 | options:&nbsp;[Options](#Options) | See Options reference                                                        | `{parseObject: false, rootObjectValidation: null }` |
+
+#### _JsObjectSchema.validate(object)_
+Call this function to validate an object 
+
+| Argument         | Description                         | Default value |
+|------------------|-------------------------------------|---------------|
+| object:&nbsp;Any | The object that should be validated | `undefined`   |
+
+| Return Value        | Description                                          | Example                                              |
+|---------------------|------------------------------------------------------|------------------------------------------------------|
+| result              | An object containing the validated object and error  | `{ object: Object, error: null }`                    |
+| result.object       | The validated and optionally parsed object.          | `{ key: 'value' }`                                   |
+| result.error        | The error object. When no errors, this is null.      | `{ message: 'Schema validation error', errors: [] }` |
+| result.error.errors | The validation errors for each prop.                 | `[ new Error("'key' is invalid") ]`                  |
 
 ##### Example
 ```javascript
