@@ -50,7 +50,7 @@ Call this function to validate an object
 | result.error        | The error object. When no errors, this is null.      | `{ message: 'Schema validation error', errors: [] }` |
 | result.error.errors | The validation errors for each prop.                 | `[ new Error("'key' is invalid") ]`                  |
 
-##### Example
+**Example:**
 ```javascript
 const JsObjectSchema = require('js-object-schema');
 const schema = new JsObjectSchema('Pokemon', {
@@ -63,10 +63,10 @@ const pokemon = { name: 'Picachu', level: 99, maxLevel: 99 };
 const { error, object } = schema.validate(object);
 ```
 
-#### Schema
+### Schema
 The schema should be an object that reflects the object it should validate. The schema property can be a function, array or JsObjectSchema.
 
-##### Basic Schema
+#### Basic Schema
 A schema property function is called with the whole object as argument. If it returns true, the property is interpreted as valid:
 ```javascript
 const pokemonSchema = new JsObjectSchema('Pokemon', {
@@ -76,7 +76,7 @@ const pokemonSchema = new JsObjectSchema('Pokemon', {
 });
 ```
 
-##### Nested Schemas
+#### Nested Schemas
 The schema can be nested! Simply create an object within the schema object:
 ```javascript
 const trainerSchema = new JsObjectSchema('Pokemon', {
@@ -106,7 +106,7 @@ const trainerSchema = new JsObjectSchema('Pokemon', {
     badges: [ (badge) => badge !== null ]
 });
 ```
-#### Options
+### Options
 | Prop                                  | Description                                                                                           | Default value |
 |---------------------------------------|-------------------------------------------------------------------------------------------------------|---------------|
 | parseObject:&nbsp;`Boolean`           | When true, the object will pe parsed to match the schema. Not inherited by nested schemas.            | `false`       |
