@@ -39,9 +39,9 @@ if (result.error) {
 #### _JsObjectSchema.validate(object)_
 Call this function to validate an object 
 
-| Argument         | Description                         | Default value |
-|------------------|-------------------------------------|---------------|
-| object:&nbsp;Any | The object that should be validated | `undefined`   |
+| Argument           | Description                         | Default value |
+|--------------------|-------------------------------------|---------------|
+| object:&nbsp;`Any` | The object that should be validated | `undefined`   |
 
 | Return Value        | Description                                          | Example                                              |
 |---------------------|------------------------------------------------------|------------------------------------------------------|
