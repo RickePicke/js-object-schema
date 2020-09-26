@@ -1,5 +1,5 @@
 # js-object-schema
-## A very small, easy to use, javascript object validation tool.
+## A very small, flexible, easy to use, javascript object validation tool.
 
 ### Install
 ```bash
@@ -30,11 +30,11 @@ if (result.error) {
 ```
 ### Api Reference
 #### _JsObjectSchema(name, schema, options)_
-| Prop                            | Description                                                                  | Default value                                        |
-|---------------------------------|------------------------------------------------------------------------------|------------------------------------------------------|
-| name: `String`                  | The name of the schema. Providing name will give more accurate error message | `'Object'`                                           |
-| schema: [Schema](####Schema)    | See Schema reference.                                                        | `{}`                                                 |
-| options: [Options](####Options) | See Options reference                                                        | `{ parseObject: false, rootObjectValidation: null }` |
+| Prop                | Description                                                                  | Default value                                        |
+|---------------------|------------------------------------------------------------------------------|------------------------------------------------------|
+| name: `String`      | The name of the schema. Providing name will give more accurate error message | `'Object'`                                           |
+| [Schema](#Schema)   | See Schema reference.                                                        | `{}`                                                 |
+| [Options](#Options) | See Options reference                                                        | `{ parseObject: false, rootObjectValidation: null }` |
 
 ##### Example
 ```javascript
