@@ -9,8 +9,8 @@ $ npm install js-object-schema
 ### Usage
 ```javascript
 // Import  
-const JsObjectSchema = require('js-object-schema');
-// Or: import JsObjectSchema from 'js-object-schema';
+import JsObjectSchema from 'js-object-schema';
+// Or: const JsObjectSchema = require('js-object-schema');
 
 // Create schema
 const schema = new JsObjectSchema('Pokemon', {
