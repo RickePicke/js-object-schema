@@ -2,22 +2,50 @@ import { curry } from './utils';
 
 const defaultOptions = {
     parseObject: false,
-    strict: false,
-    name: null,
-    notNil: false,
-    notEmpty: false
+    rootObjectValidation: null
 };
 
 class JsObjectSchema {
-    constructor(schema, options = {}) {
+    constructor(name, schema, options = {}) {
+        this.name = name || 'Object';
         this.schema = schema || {};
         this.options = { ...defaultOptions, ...options };
-        this._createValidationErrors = curry((schema, object, validationErrors, key) => {
-            const schemaNode = schema[key];
+
+        this._handleNonFunctionSchemaNode = curry((schemaNode, key, validationErrors, obj) => {
+            const schemaObj = schemaNode instanceof JsObjectSchema
+                ? schemaNode
+                : new JsObjectSchema(key, schemaNode);
+
+            const { error } = schemaObj.validate(obj);
+            return error ? [ ...validationErrors, ...error.errors ] : validationErrors;
+        });
+
+        return this;
+    }
+
+    validate(object) {
+        const rootObjectValidationError = this._getRootObjectValidationError(Object);
+        if (rootObjectValidationError) {
+            return rootObjectValidationError;
+        }
+
+        const validationErrors = Object
+            .keys(this.schema)
+            .reduce(this._createValidationErrors(object), []);
+
+        return {
+            object: this.options.parseObject ? this._parseObject(object) : object,
+            error: !validationErrors.length ? null : { message: 'Schema validation error', errors: validationErrors }
+        };
+    }
+
+    _createValidationErrors(object) {
+        return (validationErrors, key) => {
+            const schemaNode = this.schema[key];
             const value = object ? object[key] : null;
 
             if (typeof schemaNode === 'function') {
-                const errorSuffix = `Error in ${this.options.name || 'Root Object'}: `;
+                const errorSuffix = `Error in ${this.name}: `;
                 return schemaNode(object || {})
                     ? validationErrors
                     : [ ...validationErrors, Error(`${errorSuffix}${key} is invalid.`) ];
@@ -32,58 +60,31 @@ class JsObjectSchema {
             }
 
             throw new Error(`Error for key '${key}': Handler must be a function or JsObjectSchema`);
-        });
+        };
+    };
 
-        this._handleNonFunctionSchemaNode = curry((schemaNode, key, validationErrors, obj) => {
-            const schemaObj = schemaNode instanceof JsObjectSchema
-                ? schemaNode
-                : new JsObjectSchema(schemaNode, { name: key });
-
-            const { error } = schemaObj.validate(obj, key);
-            return error ? [ ...validationErrors, ...error.errors ] : validationErrors;
-        });
-
-        return this;
-    }
-
-    validate(object, key = this.options.name) {
-        const strictError = this._getOptionalError(Object, key);
-        if (strictError) {
-            return strictError;
+    _getRootObjectValidationError(object) {
+        const { rootObjectValidation } = this.options;
+        if (rootObjectValidation) {
+            if (typeof rootObjectValidation.handler === 'function' && !rootObjectValidation.handler(object)) {
+                return {
+                    object,
+                    error: {
+                        message: 'Root Object validation error',
+                        errors: [ new Error(rootObjectValidation.errorMessage || `${this.name} is invalid`) ]
+                    }
+                };
+            } else {
+                console.warn(`Option rootObjectValidation handler is not a function. No validation done for root object '${this.name}'.`);
+            }
         }
 
-        const validationErrors = Object
-            .keys(this.schema)
-            .reduce(this._createValidationErrors(this.schema, object), []);
-
-        return {
-            object: this.options.parseObject ? this._parseObject(object) : object,
-            error: !validationErrors.length ? null : { message: 'Schema validation error', errors: validationErrors }
-        };
+        return null;
     }
 
     _parseObject(object) {
         return Object.keys(this.schema)
             .reduce((acc, key) => ({ ...acc, [key]: object[key] }), {});
-    }
-
-    _getOptionalError(object, key) {
-        const message = 'Schema validation error';
-        const objName = key || 'Root Object';
-
-        if (this.options.notNil && !object) {
-            return { object, error: { message, errors: [ new Error(`${objName} must not be nil.`) ] } };
-        }
-
-        if (this.options.notEmpty && (!object || !Object.keys(object).length)) {
-            return { object, error: { message, errors: [ new Error(`${objName} must not be empty.`) ] } };
-        }
-
-        if (this.options.strict && JSON.stringify(Object.keys(this.schema).sort()) !== JSON.stringify(Object.keys(object).sort())) {
-            return { object, error: { message, errors: [ new Error(`${objName} include properties that is not in schema`) ] } };
-        }
-
-        return null;
     }
 }
 
