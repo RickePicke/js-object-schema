@@ -14,11 +14,11 @@ const JsObjectSchema = require('js-object-schema');
 // Or: import JsObjectSchema from 'js-object-schema';
 
 // Create schema
-const schema = new JsObjectSchema({
+const schema = new JsObjectSchema('Pokemon', {
     name: ({ name }) => typeof name === 'string', 
     maxLevel: ({ maxLevel }) => typeof maxLevel === 'number' && maxLevel > 0,
     level: ({ level, maxLevel }) => typeof level === 'number' && level <= maxLevel
-}, { name: 'Pokemon' })
+})
 
 const pokemon = { name: 'Picachu', level: 99, maxLevel: 99};
 
