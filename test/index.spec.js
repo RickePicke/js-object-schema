@@ -1,98 +1,253 @@
 import JsObjectSchema from '../src/index';
 
-describe('schema', () => {
-    test('plain schema given valid object', () => {
-        const schema = new JsObjectSchema({
-            name: ({ name }) => typeof name === 'string',
-            maxLevel: ({ maxLevel }) => typeof maxLevel === 'number' && maxLevel > 0,
-            level: ({ level, maxLevel }) => typeof level === 'number' && level <= maxLevel
+const squirtle = { name: 'Squirtle', level: 5, maxLevel: 99 };
+const bulbasaur = { name: 'Bulbasaur', level: 5, maxLevel: 99 };
+const pikachu = { name: 'Pikachu', level: 99, maxLevel: 99 };
+
+describe('JsObjectSchema', () => {
+    describe('Basics', () => {
+        test('plain schema given valid object', () => {
+            const schema = new JsObjectSchema('Pokemon', {
+                name: ({ name }) => typeof name === 'string',
+                maxLevel: ({ maxLevel }) => typeof maxLevel === 'number' && maxLevel > 0,
+                level: ({ level, maxLevel }) => typeof level === 'number' && level <= maxLevel
+            });
+
+            const result = schema.validate(pikachu);
+
+            expect(result.error).toBe(null);
+            expect(result.object).toEqual(pikachu);
         });
-
-        const object = {
-            name: 'Picachu',
-            level: 99,
-            maxLevel: 99
-        };
-
-        const result = schema.validate(object);
-
-        expect(result.object).toEqual(object);
-        expect(result.error).toBe(null);
     });
 
-    test('schema with handler and custom message given invalid object', () => {
-        const schema = new JsObjectSchema({
-            name: ({ name }) => typeof name === 'string',
-            maxLevel: {
-                handler: ({ maxLevel }) => typeof maxLevel === 'number' && maxLevel > 0,
-                errorMessage: 'maxLevel must be a number greater than 0.'
-            },
-            level: ({ level, maxLevel }) => typeof level === 'number' && level <= maxLevel
+    describe('Nested schemas', () => {
+        test('schema with prop that is a schema given valid object', () => {
+            const pokemonSchema = new JsObjectSchema('Pokemon', {
+                name: ({ name }) => typeof name === 'string',
+                maxLevel: ({ maxLevel }) => typeof maxLevel === 'number' && maxLevel > 0,
+                level: ({ level, maxLevel }) => typeof level === 'number' && level <= maxLevel
+            });
+
+            const trainerSchema = new JsObjectSchema('Trainer', {
+                name: ({ name }) => typeof name === 'string',
+                badges: ({ badges }) => Array.isArray(badges),
+                pokemon: pokemonSchema
+            });
+
+            const trainer = { name: 'Ash', badges: [], pokemon: squirtle };
+
+            const result = trainerSchema.validate(trainer);
+
+            expect(result.error).toBe(null);
+            expect(result.object).toEqual(trainer);
         });
 
-        const object = { name: 'Charmander', level: 0, maxLevel: 0 };
+        test('schema with prop that is a schema given invalid object', () => {
+            const pokemonSchema = new JsObjectSchema('Pokemon', {
+                name: ({ name }) => typeof name === 'string',
+                maxLevel: ({ maxLevel }) => typeof maxLevel === 'number' && maxLevel > 0,
+                level: ({ level, maxLevel }) => typeof level === 'number' && level <= maxLevel
+            });
 
-        const result = schema.validate(object);
+            const trainerSchema = new JsObjectSchema('Trainer', {
+                name: ({ name }) => typeof name === 'string',
+                badges: ({ badges }) => Array.isArray(badges),
+                pokemon: pokemonSchema
+            });
 
-        expect(result.object).toEqual(object);
-        expect(result.error.errors.length).toBe(1);
-        expect(result.error.message).toBe('Schema validation error');
-        expect(result.error.errors[0].message).toBe('maxLevel must be a number greater than 0.');
-    });
+            const trainer = { name: 'Ash', badges: null, pokemon: { maxLevel: 0, level: 1, name: 'missingno' } };
 
-    test('schema with arrays with mixed values given invalid object', () => {
-        const schema = new JsObjectSchema({
-            name: ({ name }) => typeof name === 'string',
-            maxLevel: {
-                handler: ({ maxLevel }) => typeof maxLevel === 'number' && maxLevel > 0,
-                errorMessage: 'maxLevel must be a number greater than 0.'
-            },
-            level: [
-                ({ level }) => typeof level === 'number',
-                {
-                    handler: ({ level, maxLevel }) => typeof level === 'number' && level <= maxLevel,
-                    errorMessage: 'level must be lower or equal to maxLevel'
+            const result = trainerSchema.validate(trainer);
+
+            expect(result.error.errors.length).toBe(3);
+            expect(result.error.message).toBe('Schema validation error');
+            expect(result.error.errors[0].message).toBe('Error in Trainer: badges is invalid.');
+            expect(result.error.errors[1].message).toBe('Error in Pokemon: maxLevel is invalid.');
+            expect(result.error.errors[2].message).toBe('Error in Pokemon: level is invalid.');
+        });
+
+        test('schema with an object as prop given valid object', () => {
+            const trainerSchema = new JsObjectSchema('Trainer', {
+                name: ({ name }) => typeof name === 'string',
+                badges: ({ badges }) => Array.isArray(badges),
+                pokemon: {
+                    name: ({ name }) => typeof name === 'string',
+                    maxLevel: ({ maxLevel }) => typeof maxLevel === 'number' && maxLevel > 0,
+                    level: ({ level, maxLevel }) => typeof level === 'number' && level <= maxLevel
                 }
-            ]
+            });
+
+            const trainer = { name: 'Ash', badges: [], pokemon: bulbasaur };
+
+            const result = trainerSchema.validate(trainer);
+
+            expect(result.error).toBe(null);
+            expect(result.object).toEqual(trainer);
         });
 
-        const object = { name: 'Squirtle', level: 99, maxLevel: 50 };
+        test('schema with an object as prop given invalid object', () => {
+            const trainerSchema = new JsObjectSchema('Trainer', {
+                name: ({ name }) => typeof name === 'string',
+                badges: ({ badges }) => Array.isArray(badges),
+                pokemon: {
+                    name: ({ name }) => typeof name === 'string',
+                    maxLevel: ({ maxLevel }) => typeof maxLevel === 'number' && maxLevel > 0,
+                    level: ({ level, maxLevel }) => typeof level === 'number' && level <= maxLevel
+                }
+            });
 
-        const result = schema.validate(object);
+            const trainer = { name: 'Ash', badges: [], pokemon: { name: null, maxLevel: 99, level: 5 } };
 
-        expect(result.object).toEqual(object);
-        expect(result.error.errors.length).toBe(1);
-        expect(result.error.message).toBe('Schema validation error');
-        expect(result.error.errors[0].message).toBe('level must be lower or equal to maxLevel');
+            const result = trainerSchema.validate(trainer);
+
+            expect(result.error.errors.length).toBe(1);
+            expect(result.error.message).toBe('Schema validation error');
+            expect(result.error.errors[0].message).toBe('Error in pokemon: name is invalid.');
+        });
+
+        test('schema with prop that is an array with schema given valid object', () => {
+            const pokemonSchema = new JsObjectSchema('Pokemon', {
+                name: ({ name }) => typeof name === 'string',
+                maxLevel: ({ maxLevel }) => typeof maxLevel === 'number' && maxLevel > 0,
+                level: ({ level, maxLevel }) => typeof level === 'number' && level <= maxLevel
+            });
+
+            const trainerSchema = new JsObjectSchema('Trainer', {
+                name: ({ name }) => typeof name === 'string',
+                badges: ({ badges }) => Array.isArray(badges),
+                pokemon: [ pokemonSchema ]
+            });
+
+            const trainer = { name: 'Ash', badges: [], pokemon: [ bulbasaur, squirtle ] };
+            const result = trainerSchema.validate(trainer);
+
+            expect(result.error).toBe(null);
+            expect(result.object).toEqual(trainer);
+        });
+
+        test('schema with prop that is an array with schema given invalid object', () => {
+            const pokemonSchema = new JsObjectSchema('Pokemon', {
+                name: ({ name }) => typeof name === 'string',
+                maxLevel: ({ maxLevel }) => typeof maxLevel === 'number' && maxLevel > 0,
+                level: ({ level, maxLevel }) => typeof level === 'number' && level <= maxLevel
+            });
+
+            const trainerSchema = new JsObjectSchema('Trainer', {
+                name: ({ name }) => typeof name === 'string',
+                badges: ({ badges }) => Array.isArray(badges),
+                pokemon: [ pokemonSchema ]
+            });
+
+            const trainer = {
+                name: null,
+                badges: [ 'Pewter Gym' ],
+                pokemon: [ bulbasaur, squirtle, { name: null, level: 40, maxLevel: 40 } ]
+            };
+
+            const result = trainerSchema.validate(trainer);
+
+            expect(result.error.errors.length).toBe(2);
+            expect(result.error.message).toBe('Schema validation error');
+            expect(result.error.errors[0].message).toBe('Error in Trainer: name is invalid.');
+            expect(result.error.errors[1].message).toBe('Error in Pokemon: name is invalid.');
+        });
+
+        test('schema with prop that is an array with object given valid object', () => {
+            const trainerSchema = new JsObjectSchema('Trainer', {
+                name: ({ name }) => typeof name === 'string',
+                badges: ({ badges }) => Array.isArray(badges),
+                pokemon: [{
+                    name: ({ name }) => typeof name === 'string',
+                    maxLevel: ({ maxLevel }) => typeof maxLevel === 'number' && maxLevel > 0,
+                    level: ({ level, maxLevel }) => typeof level === 'number' && level <= maxLevel
+                }]
+            });
+
+            const trainer = { name: 'Ash', badges: [], pokemon: [ bulbasaur, squirtle ] };
+
+            const result = trainerSchema.validate(trainer);
+
+            expect(result.error).toBe(null);
+            expect(result.object).toEqual(trainer);
+        });
+
+        test('schema with prop that is an array with object given invalid object', () => {
+            const trainerSchema = new JsObjectSchema('Trainer', {
+                name: ({ name }) => typeof name === 'string',
+                badges: ({ badges }) => Array.isArray(badges),
+                pokemon: [{
+                    name: ({ name }) => typeof name === 'string',
+                    maxLevel: ({ maxLevel }) => typeof maxLevel === 'number' && maxLevel > 0,
+                    level: ({ level, maxLevel }) => typeof level === 'number' && level <= maxLevel
+                }]
+            });
+
+            const trainer = {
+                name: 'Ash',
+                badges: [],
+                pokemon: [ { name: 'Rattata', level: 41, maxLevel: 40 }, bulbasaur, squirtle ]
+            };
+
+            const result = trainerSchema.validate(trainer);
+
+            expect(result.error.errors.length).toBe(1);
+            expect(result.error.message).toBe('Schema validation error');
+            expect(result.error.errors[0].message).toBe('Error in pokemon: level is invalid.');
+        });
     });
 
-    test('schema given options with parseObject true should only include props from schema', () => {
-        const schema = new JsObjectSchema({
-            name: ({ name }) => typeof name === 'string',
-            maxLevel: ({ maxLevel }) => typeof maxLevel === 'number' && maxLevel > 0,
-            level: ({ level, maxLevel }) => typeof level === 'number' && level <= maxLevel
-        }, { parseObject: true });
+    describe('Options', () => {
+        test('schema given options with parseObject true should only include props from schema and nested schemas', () => {
+            const statsSchema = new JsObjectSchema('Stats', {
+                attack: ({ attack }) => attack ? typeof attack === 'number' : true,
+                defence: ({ defence }) => defence ? typeof defence === 'number' : true,
+                speed: ({ speed }) => speed ? typeof speed === 'number' : true
+            }, { rootObjectValidation: obj => obj && !!Object.keys(obj).length });
 
-        const baseObject = { name: 'Squirtle', level: 1, maxLevel: 99 };
-        const objectWithExtraProps = { ...baseObject, hp: 60, attacks: [ 'Tackle', 'Leer' ] };
+            const pokemonSchema = new JsObjectSchema('Pokemon', {
+                name: ({ name }) => typeof name === 'string',
+                maxLevel: ({ maxLevel }) => typeof maxLevel === 'number' && maxLevel > 0,
+                level: ({ level, maxLevel }) => typeof level === 'number' && level <= maxLevel,
+                stats: statsSchema
+            }, { parseObject: true });
 
-        const result = schema.validate(objectWithExtraProps);
+            const trainerSchema = new JsObjectSchema('Trainer', {
+                name: ({ name }) => typeof name === 'string',
+                badges: ({ badges }) => Array.isArray(badges),
+                pokemon: [ pokemonSchema ]
+            }, { parseObject: true });
 
-        expect(result.object).toEqual(baseObject);
-    });
+            const pikachuExt = { ...pikachu, attacks: [ 'Tackle', 'Leer' ], stats: { attack: 5, hp: 50 } };
+            const squirtleExt = { ...squirtle, attacks: [ 'Tackle', 'Leer' ], stats: { defence: 5, hp: 50 } };
 
-    test('schema given options with strict true should return specific error when object has keys doesn\'t match schema', () => {
-        const schema = new JsObjectSchema({
-            name: ({ name }) => typeof name === 'string',
-            maxLevel: ({ maxLevel }) => typeof maxLevel === 'number' && maxLevel > 0,
-            level: ({ level, maxLevel }) => typeof level === 'number' && level <= maxLevel
-        }, { strict: true });
+            const trainer = { name: 'Ash', badges: [], pokemon: [] };
+            const trainerExt = { ...trainer, bag: [ { pokeBalls: 5 } ], pokemon: [ squirtleExt, pikachuExt ] };
 
-        const object = { name: 'Squirtle', level: 1, maxLevel: 99, hp: 60, attacks: [ 'Tackle', 'Leer' ] };
-        const result = schema.validate(object);
+            const expectedTrainer = {
+                ...trainer,
+                pokemon: [ { ...squirtle, stats: squirtleExt.stats }, { ...pikachu, stats: pikachuExt.stats } ]
+            };
 
-        expect(result.error.errors.length).toBe(1);
-        expect(result.error.message).toBe('Strict violation error');
-        expect(result.error.errors[0].message).toBe('Object include properties that is not in schema');
+            const result = trainerSchema.validate(trainerExt);
+
+            expect(result.object).toEqual(expectedTrainer);
+        });
+
+        test('schema given options rootObjectValidation function should return specific error when it\'s invalid', () => {
+            const options = {
+                rootObjectValidation: {
+                    handler: obj => !!obj && typeof obj === 'object' && !Array.isArray(obj),
+                    errorMessage: 'Bag must not be a non nil object.'
+                }
+            };
+
+            const schema = new JsObjectSchema('Bag', {}, options);
+
+            const result = schema.validate(null);
+
+            expect(result.error.errors.length).toBe(1);
+            expect(result.error.message).toBe('Root Object Validation error');
+            expect(result.error.errors[0].message).toBe('Bag must not be a non nil object.');
+        });
     });
 });
