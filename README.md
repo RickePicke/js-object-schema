@@ -19,7 +19,7 @@ const schema = new JsObjectSchema('Pokemon', {
     level: ({ level, maxLevel }) => typeof level === 'number' && level <= maxLevel
 })
 
-const pokemon = { name: 'Picachu', level: 99, maxLevel: 99};
+const pokemon = { name: 'Pikachu', level: 99, maxLevel: 99};
 
 const result = schema.validate(object);
 
@@ -59,7 +59,7 @@ const schema = new JsObjectSchema('Pokemon', {
     level: ({ level, maxLevel }) => typeof level === 'number' && level <= maxLevel
 }, { parseObject: true });
 
-const pokemon = { name: 'Picachu', level: 99, maxLevel: 99 };
+const pokemon = { name: 'Pikachu', level: 99, maxLevel: 99 };
 const { error, object } = schema.validate(object);
 ```
 
