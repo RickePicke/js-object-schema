@@ -249,5 +249,51 @@ describe('JsObjectSchema', () => {
             expect(result.error.message).toBe('Root Object Validation error');
             expect(result.error.errors[0].message).toBe('Bag must not be a non nil object.');
         });
+
+        test('nested schema given object with nested prop as undefined', () => {
+            const pokemonSchema = new JsObjectSchema('Pokemon', {
+                name: ({ name }) => typeof name === 'string',
+                maxLevel: ({ maxLevel }) => typeof maxLevel === 'number' && maxLevel > 0,
+                level: ({ level, maxLevel }) => typeof level === 'number' && level <= maxLevel
+            }, { rootObjectValidation: (pokemon) => !!pokemon && typeof pokemon === 'object' && !Array.isArray(pokemon) });
+
+            const trainerSchema = new JsObjectSchema('Trainer', {
+                name: ({ name }) => typeof name === 'string',
+                badges: ({ badges }) => Array.isArray(badges),
+                pokemon: pokemonSchema
+            });
+
+            const trainer = { name: 'Ash', badges: [] };
+
+            const result = trainerSchema.validate(trainer);
+
+            expect(result.error.errors.length).toBe(1);
+            expect(result.error.message).toBe('Schema validation error');
+            expect(result.error.errors[0].message).toBe('Pokemon is invalid.');
+        });
+
+        test('nested schema given object with nested prop as empty object', () => {
+            const pokemonSchema = new JsObjectSchema('Pokemon', {
+                name: ({ name }) => typeof name === 'string',
+                maxLevel: ({ maxLevel }) => typeof maxLevel === 'number' && maxLevel > 0,
+                level: ({ level, maxLevel }) => typeof level === 'number' && level <= maxLevel
+            });
+
+            const trainerSchema = new JsObjectSchema('Trainer', {
+                name: ({ name }) => typeof name === 'string',
+                badges: ({ badges }) => Array.isArray(badges),
+                pokemon: pokemonSchema
+            });
+
+            const trainer = { name: 'Ash', badges: [], pokemon: {} };
+
+            const result = trainerSchema.validate(trainer);
+
+            expect(result.error.errors.length).toBe(3);
+            expect(result.error.message).toBe('Schema validation error');
+            expect(result.error.errors[0].message).toBe('Error in Pokemon: name is invalid.');
+            expect(result.error.errors[1].message).toBe('Error in Pokemon: maxLevel is invalid.');
+            expect(result.error.errors[2].message).toBe('Error in Pokemon: level is invalid.');
+        });
     });
 });
