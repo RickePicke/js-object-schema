@@ -88,7 +88,7 @@ class JsObjectSchema {
             return { object, error: { message: 'Root Object Validation error', errors: [ new Error(errorMessage) ] } };
         }
 
-        if (handler) {
+        if (!handler) {
             console.warn('Option rootObjectValidation is used incorrectly. No validation made for root object. Check docs for usage.');
         }
 
