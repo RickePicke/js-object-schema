@@ -19,7 +19,7 @@ class JsObjectSchema {
 
         this._handleFunctionSchemaNode = curry((validationFunc, key, validationErrors, val) => {
             const errorSuffix = `Error in ${this.name}: `;
-            return validationFunc(val)
+            return validationFunc(val || {})
                 ? validationErrors
                 : [ ...validationErrors, Error(`${errorSuffix}${key} is invalid.`) ];
         });
@@ -28,7 +28,7 @@ class JsObjectSchema {
     }
 
     validate(object) {
-        const rootObjectValidationError = this._getRootObjectValidationError(Object);
+        const rootObjectValidationError = this._getRootObjectValidationError(object);
         if (rootObjectValidationError) {
             return rootObjectValidationError;
         }
@@ -67,10 +67,10 @@ class JsObjectSchema {
             }
 
             if (schemaNode && typeof schemaNode === 'object') {
-                return this._handleNonFunctionSchemaNode(schemaNode, key, validationErrors, object[key]);
+                return this._handleNonFunctionSchemaNode(schemaNode, key, validationErrors, value);
             }
 
-            throw new Error(`Error for key '${key}': Handler must be a function or JsObjectSchema`);
+            throw new Error(`Error for key '${key}': Handler must be a function or JsObjectSchema.`);
         };
     };
 
@@ -82,7 +82,7 @@ class JsObjectSchema {
 
         const errorMessage = (rootObjectValidation && rootObjectValidation.errorMessage)
             ? rootObjectValidation.errorMessage
-            : `${this.name} is invalid`;
+            : `${this.name} is invalid.`;
 
         if (typeof handler === 'function' && !handler(object)) {
             return { object, error: { message: 'Root Object Validation error', errors: [ new Error(errorMessage) ] } };
