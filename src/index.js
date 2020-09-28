@@ -5,7 +5,7 @@ const defaultOptions = {
     rootObjectValidation: null
 };
 
-class JsObjectSchema {
+export default class JsObjectSchema {
     constructor(name, schema, options = {}) {
         this.name = name || 'Object';
         this.schema = schema || {};
@@ -52,7 +52,7 @@ class JsObjectSchema {
     _getValidationErrors(object) {
         return (validationErrors, key) => {
             const schemaNode = this.schema[key];
-            const value = object ? object[key] : null;
+            const value = this._getValue(schemaNode, object, key);
 
             if (typeof schemaNode === 'function') {
                 return this._handleFunctionSchemaNode(schemaNode, key, validationErrors, object);
@@ -99,14 +99,14 @@ class JsObjectSchema {
         return Object.keys(this.schema)
             .reduce((parsedObject, key) => {
                 const schemaNode = this.schema[key];
-                const value = object[key];
+                const value = this._getValue(schemaNode, object, key);
 
-                if (schemaNode && typeof schemaNode === 'object' && !Array.isArray(schemaNode)) {
+                if (value && schemaNode && typeof schemaNode === 'object' && !Array.isArray(schemaNode)) {
                     const schemaObj = this._getSchemaObject(schemaNode, key);
                     return { ...parsedObject, [key]: schemaObj.options.parseObject ? schemaObj._parseObject(value) : value };
                 }
 
-                if (Array.isArray(schemaNode)) {
+                if (value && Array.isArray(schemaNode)) {
                     const schemaObj = this._getSchemaObject(schemaNode[0], key);
                     const parsedArray = value.reduce((array, item) => [
                         ...array,
@@ -116,9 +116,12 @@ class JsObjectSchema {
                     return { ...parsedObject, [key]: parsedArray };
                 }
 
-                return ({ ...parsedObject, [key]: object[key] });
+                return ({ ...parsedObject, [key]: value });
             }, {});
     }
-}
 
-export default JsObjectSchema;
+    _getValue(schemaNode, object, key) {
+        const value = object ? object[key] : null;
+        return value || (Array.isArray(schemaNode) ? [] : value);
+    }
+}
