@@ -60,5 +60,8 @@
     "hooks": {
       "pre-push": "npm run verify"
     }
+  },
+  "dependencies": {
+    "caniuse-lite": "^1.0.30001221"
   }
 }
