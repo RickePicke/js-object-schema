@@ -4,9 +4,6 @@
   "description": "A tool for validating javascript objects",
   "main": "dist/js-object-schema.common.js",
   "module": "dist/js-object-schema.es.js",
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com/"
-  },
   "scripts": {
     "dev": "jest --watchAll",
     "build": "rollup -c",
